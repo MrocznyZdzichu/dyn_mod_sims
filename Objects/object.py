@@ -3,10 +3,11 @@ from numpy_utils import converters
 
 
 class Object:
-    def __init__(self, sampling_time, n_inputs, n_outputs):
+    def __init__(self, sampling_time, n_inputs, n_outputs, states_count):
         self._sampling_time = sampling_time
-        self.__n_inputs = n_inputs
-        self.__n_outputs = n_outputs
+        self._n_inputs = n_inputs
+        self._n_outputs = n_outputs
+        self._n_states = states_count
         self.reset_history()
 
     def summary(self, messages):
@@ -21,9 +22,9 @@ class Object:
         pass
 
     def reset_history(self):
-        self._input_hist = [np.zeros((self.__n_inputs, 1))]
-        self._output_hist = [np.zeros((self.__n_outputs, 1))]
-        self._state_hist = [np.zeros((self.__n_outputs, 1))]
+        self._input_hist = [np.zeros((self._n_inputs, 1))]
+        self._output_hist = [np.zeros((self._n_outputs, 1))]
+        self._state_hist = [np.zeros((self._n_states, 1))]
         self._timestamps = [0]
 
     def show_history(self):

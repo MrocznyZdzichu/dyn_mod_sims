@@ -6,8 +6,6 @@ from .object import Object
 class Proportional_object(Object):
     def __init__(self, gain, sampling_time=0.1):
         self.set_gain(gain)
-        self.__n_inputs  = self.get_gain().shape[1]
-        self.__n_outputs = self.get_gain().shape[0]
         
         self.__supported_input_types = [int, float, list, tuple, np.ndarray]
         self.__object_type = "Proportional object"
@@ -15,7 +13,7 @@ class Proportional_object(Object):
             "gain" : self.__gain
         }
         
-        super().__init__(sampling_time, self.__n_inputs, self.__n_outputs)
+        super().__init__(sampling_time, self.get_gain().shape[1], self.get_gain().shape[0], self.get_gain().shape[0])
         
     def get_gain(self):
         return self.__gain
