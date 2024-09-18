@@ -11,7 +11,7 @@ class Object:
         self.reset_history()
 
     def summary(self, messages):
-        messages.append(f'Sampling time: {self.__sampling_time}')
+        messages.append(f'Sampling time: {self._sampling_time}')
         for msg in messages:
             print(msg)
 
