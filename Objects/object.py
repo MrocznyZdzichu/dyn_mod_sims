@@ -15,6 +15,9 @@ class Object:
         for msg in messages:
             print(msg)
 
+    def get_dimensions(self):
+        return self._n_inputs, self._n_outputs, self._n_states
+
     def get_param(self, param_name):
         return eval(f"self._{self.__class__.__name__}__{param_name}")
 
