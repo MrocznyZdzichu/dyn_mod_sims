@@ -61,7 +61,7 @@ class Proportional_object(Object):
         
         super()._update_history(u, yt, yt, t_prev+self._sampling_time)
         
-        return yt
+        return t_prev+self._sampling_time, yt, yt
 
     def __validate_input(self, u):
         if type(u) not in self.__supported_input_types:
