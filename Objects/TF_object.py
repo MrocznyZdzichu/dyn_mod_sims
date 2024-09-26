@@ -27,7 +27,7 @@ class TF_object(Object):
         res = False
         for row in tf_matrix:
             for el in row:
-                res += type(el) not in (scipy.signal._ltisys.TransferFunctionContinuous, int, float)
+                res += type(el) not in (scipy.signal._ltisys.TransferFunctionContinuous, int, float, np.float64, np.int64)
         return res == 0
 
     def __create_SISO_subobjects(self, sampling_time):
@@ -58,7 +58,7 @@ class TF_object(Object):
         for output in range(0, n_output_inputs[0]):
             for input in range(0, n_output_inputs[1]):
                 current_tf = self.__tf[output, input]
-                if type(current_tf) in (int, float):
+                if type(current_tf) in (int, float, np.float64, np.int64):
                     n_states += 1 
                 else:
                     n_states += len(self.__tf[output, input].den) - 1

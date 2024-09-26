@@ -1,40 +1,75 @@
-class Inertial_Object(TF_object):
-    def __init__(self, time_const, gain):
-        self.set_param('time_const', time_const)
-        self.set_param('gain', gain)
-        numerator = [gain]
-        denominator = [time_const, 1]
-        super().__init__(numerator, denominator)
+from scipy.signal import TransferFunction
+import numpy as np
+
+from numpy_utils import converters as cnvs
+from .object import Object
+from .TF_object import TF_object
 
 
-    def summary(self):
-        messages = ['This is an intertial object.']
-        messages.append(f'Gain: {self.__gain}')
-        messages.append(f'Time constant: {self.__time_const}')
+class Inertial_Object(Object):
+    def __init__(self, time_const, gain, sampling_time=1):
+        self.set_time_const(time_const)
+        self.set_gain(gain)
+        if not self.__validate_shapes():
+            raise ValueError('The object has to possess same amounts of gains and time constants')
+        
+        self.build_tf_matrix()
+        n_states = self.__get_total_states_count()
+        super().__init__(sampling_time, self.__tf.shape[1], self.__tf.shape[0], n_states)
+        self.__obj = TF_object(sampling_time=sampling_time, tf_matrix=self.__tf)
+    
+    def __validate_shapes(self):
+        return self.__time_const.shape == self.__gain.shape
+        
+    def set_time_const(self, time_const):
+        self.__time_const = cnvs.to_array_converter().convert_any_type(time_const)
+
+    def set_gain(self, gain):
+        self.__gain = cnvs.to_array_converter().convert_any_type(gain)
+
+    def build_tf_matrix(self):
+        tf = []
+        for i in range(0, len(self.__gain)):
+            row = []
+            for j in range(0, len(self.__gain[i])):
+                row.append(self.__build_siso_tf(self.__time_const[i][j], self.__gain[i][j]))
+            tf.append(row)
+        self.__tf = cnvs.to_array_converter().convert_any_type(tf)
+                
+    def __build_siso_tf(self, time_const_val, gain_val):
+        # independant input
+        if gain_val == 0:
+            res = 0
+        # implicit proportional object
+        elif time_const_val == 0:
+            res = gain_val
+        # proper object based on: G(s) = K / (Ts + 1)
+        else:
+            res = TransferFunction([gain_val], [time_const_val, 1])
+        return res
+
+    def __get_total_states_count(self):
+        n_output_inputs = self.__tf.shape
+        n_states = 0
+        
+        for output in range(0, n_output_inputs[0]):
+            for input in range(0, n_output_inputs[1]):
+                current_tf = self.__tf[output, input]
+                if type(current_tf) in (int, float, np.int64, np.float64):
+                    n_states += 1 
+                else:
+                    n_states += len(self.__tf[output, input].den) - 1
+        return n_states
+        
+    def summary(self, messages=None):
+        if messages==None:
+            messages = []    
+        messages.append(f'This is an inertial object.')
+        messages.append(f'Gain matrix: \n{self.__gain}')
+        messages.append(f'Time constants matrix: \n{self.__time_const}')
         super().summary(messages)
 
-    def __validate_matrix_param(self, param_value):
-        return type(param_value) == np.ndarray
-
-    def __convert_param_to_matrix(self, param_value):
-        conv = converters.to_array_converter()
-        try:
-            param_matrix = conv.convert_any_type(param_value)
-        except:
-            raise TypeError('Parameter value has to be a matrix or convertible to a matrix')
-        return param_matrix
-
-    def get_param(self, param_name):
-        return eval(f'_{self.__class__.__name__}__{param_name}')
-
-    def set_param(self, param_name, param_value):
-        if not self.__validate_matrix_param(param_value):
-            try: 
-                param_matrix = self.__convert_param_to_matrix(param_value)
-            except:
-                raise TypeError(f'{param_name} has to be a matrix or convertible to a matrix')
-                
-        setattr(self, f"_{self.__class__.__name__}__{param_name}", param_matrix)
-
-    def simulate_step(self, u, t):
-        return super().simulate_step(u, t)
+    def simulate_step(self, u):
+        ty, y_vec, x_vec = self.__obj.simulate_step(u)
+        self._update_history(u, y_vec, x_vec, ty)
+        return ty, y_vec, x_vec

@@ -4,7 +4,7 @@ import numpy as np
 class to_array_converter:
     def __init__(self):
         self.__allowed_vec_types = ('vertical', 'horizontal')
-        self.__allowed_input_types = (int, float, list, tuple)
+        self.__allowed_input_types = (int, float, list, tuple, np.float64, np.int64)
         self.__skip_types = [np.ndarray]
         
     def __convert_scalar(self, input):
@@ -34,7 +34,7 @@ class to_array_converter:
             raise TypeError('Provided input is not supported. Currently supported types:', self.__allowed_input_types)
 
         # Single value
-        if type(input) in (int, float):
+        if type(input) in (int, float, np.float64, np.int64):
             array2d = self.__convert_scalar(input)
 
         # A list or tuple
@@ -45,7 +45,11 @@ class to_array_converter:
 
             # One-element vector
             elif len(input) == 1:
-                array2d = self.__convert_scalar(input[0])
+                if type(input[0]) in (float, int):
+                    array2d = self.__convert_scalar(input[0])
+                elif type(input[0] in (tuple, list)):
+                    array2d = self.__convert_vector(input[0], vec_type)
+                    
 
             # Multi-element vector
             elif len(input) > 1:
