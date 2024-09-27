@@ -81,7 +81,12 @@ class TF_object(Object):
         for output in range(0, self._n_outputs):
             for input in range(0, self._n_inputs):
                 subobject = self.__subobjects[output][input]
-                ut = conv.convert_any_type(u[input])
+                try:
+                    conv.convert_any_type(u[input])
+                except:
+                    ut = conv.convert_any_type(u)
+                else:
+                    ut = conv.convert_any_type(u[input])
                 ty, yy, xy = subobject.simulate_step(ut)
                 y_vec[output, 0] += yy[-1]
                 if hasattr(xy[-1], '__iter__'):
