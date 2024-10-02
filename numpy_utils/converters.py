@@ -48,7 +48,11 @@ class to_array_converter:
                 if type(input[0]) in (float, int):
                     array2d = self.__convert_scalar(input[0])
                 elif type(input[0] in (tuple, list)):
-                    array2d = self.__convert_vector(input[0], vec_type)
+                    # corner-case. Signle element being a list
+                    if type(input[0][0]) in (tuple, list):
+                        array2d = np.array(input).reshape(1, 1, len(input[0][0]))
+                    else:
+                        array2d = self.__convert_vector(input[0], vec_type)
                     
 
             # Multi-element vector
