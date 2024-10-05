@@ -15,6 +15,8 @@ class TF_object(Object):
             
         self.__tf = tf_matrix        
         n_states = self.__get_total_states_count()
+        self.__subobjects = None
+        
         super().__init__(sampling_time, self.__tf.shape[1], self.__tf.shape[0], n_states)
         self.__subobjects = self.__create_SISO_subobjects(sampling_time)
         
@@ -74,7 +76,6 @@ class TF_object(Object):
         conv = converters.to_vector_converter()
         t_hist = self.get_timestamps()
         t_prev = t_hist[-1]
-
         y_vec = np.zeros((self._n_outputs, 1))
         x_vec = []
         
@@ -101,4 +102,8 @@ class TF_object(Object):
         return ty, y_vec, x_vec
 
     def reset_history(self):
+        if self.__subobjects != None:
+            for tf_row in self.__subobjects:
+                for siso_tf in tf_row:
+                    siso_tf.reset_history()
         super().reset_history()

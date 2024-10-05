@@ -15,6 +15,8 @@ class TF_Specific_Object(Object):
 
         self._build_tf_matrix()
         n_states = self._get_total_states_count()
+        
+        self._obj = None
         super().__init__(sampling_time, self._tf.shape[1], self._tf.shape[0], n_states)
         self._obj = TF_object(sampling_time=sampling_time, tf_matrix=self._tf)
         
@@ -64,3 +66,8 @@ class TF_Specific_Object(Object):
         ty, y_vec, x_vec = self._obj.simulate_step(u)
         self._update_history(u, y_vec, x_vec, ty)
         return ty, y_vec, x_vec
+
+    def reset_history(self):
+        if self._obj != None:
+            self._obj.reset_history()
+        super().reset_history()
