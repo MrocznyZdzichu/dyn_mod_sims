@@ -35,10 +35,10 @@ class PID_controller(PID):
     def set_differential_on_measurement (self, set_val):
         self.differential_on_measurement  = set_val
 
-    def get_proportional_on_measurement(self, set_val):
+    def get_proportional_on_measurement(self):
         return self.proportional_on_measurement
 
-    def get_differential_on_measurement (self, set_val):
+    def get_differential_on_measurement (self):
         return self.differential_on_measurement
 
     def simulate_step(self, u):
