@@ -14,14 +14,16 @@ def plot_regulation_history(obj, control_mapping, figsize=None):
         pid = control_mapping[n][1]
         bounds = _get_control_bounds(pid)
         
-        y = _get_output(obj, n)
+        y  = _get_output(obj, n)
         sp = _get_setpoints(pid)
         cv = _get_control_signal(pid)
+        d  = _get_disturbances(obj, control_mapping)
         
         _plot_output(axes[0][curr_serie], timestamps, y)
         _plot_setpoint(axes[0][curr_serie], timestamps, sp)
         _plot_cv(axes[1][curr_serie], timestamps, cv, bounds)
-                
+        _plot_disturbances(axes[1][curr_serie], timestamps, d)
+        
         curr_serie += 1
 
     _postprocess_axes(axes, control_mapping)
@@ -74,7 +76,7 @@ def _get_pid_parameters(pid):
 
 def _get_control_bounds(pid):
     return pid.get_CV_limit()
-    
+
 def _plot_cv(ax, t, cv, bounds):
     ax.plot(t, cv, lw=3, label='Control signal')
     for it, limit in enumerate(bounds):
@@ -82,6 +84,21 @@ def _plot_cv(ax, t, cv, bounds):
             bound_label = 'CV lower limit' if it == 0 else 'CV upper limit'
             ax.plot(t, [limit]*len(t), '--', label=bound_label)
 
+def _get_disturbances(obj, control_mapping):
+    inputs_indices = list(range(0, obj.get_dimensions()[0]))
+    controlled_inputs_indices = [val[0] for val in control_mapping.values()]
+    dists_inputs_indices = list(set(inputs_indices) - set(controlled_inputs_indices))
+
+    disturbances = {}
+    for index in dists_inputs_indices:
+        disturbances[index] = [u[index][0] for u in obj.get_input_hist()]
+
+    return disturbances
+    
+def _plot_disturbances(ax, t, dists):
+    for dist_serie, values in dists.items():
+        ax.plot(t, values, label=f'Disturbance {dist_serie}', lw=1)
+    
 def _postprocess_axes(axes, control_mapping):
     upper_charts = axes[0][:]
     lower_charts = axes[1][:]
